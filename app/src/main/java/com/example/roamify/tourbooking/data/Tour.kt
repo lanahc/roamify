@@ -1,11 +1,15 @@
 package com.example.roamify.tourbooking.data
 
-// data/Tour.kt
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 
+/**
+ * Defines the structure of a tour in the Room database.
+ * @Entity(tableName = "tours"): The table name for this data class.
+ */
 @Entity(tableName = "tours")
 data class Tour(
+    // Primary key for the database, auto-generated
     @PrimaryKey(autoGenerate = true)
     val tourId: Long = 0,
     val title: String,

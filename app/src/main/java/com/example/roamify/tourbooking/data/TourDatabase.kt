@@ -1,13 +1,12 @@
 package com.example.roamify.tourbooking.data
 
-// data/TourDatabase.kt
-
 import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 
 // Define all entities and database version
+// Tour and TourDao are now in this package, so no need for explicit imports of Tour and TourDao
 @Database(entities = [Tour::class], version = 1, exportSchema = false)
 abstract class TourDatabase : RoomDatabase() {
 
@@ -27,7 +26,6 @@ abstract class TourDatabase : RoomDatabase() {
                     TourDatabase::class.java,
                     "tour_database"
                 )
-                    // Wiping data on upgrade is okay for simple testing/apps, but should be handled with migrations in production
                     .fallbackToDestructiveMigration()
                     .build()
                 INSTANCE = instance
