@@ -44,9 +44,10 @@ android {
 
 dependencies {
     // Define versions for clarity and easier updates
-    val roomVersion = "2.6.1"
-    val lifecycleVersion = "2.7.0"
-    val coroutinesVersion = "1.7.3"
+    // --- UPDATED VERSIONS ---
+    val roomVersion = "2.8.3"        // Updated from 2.6.1
+    val lifecycleVersion = "2.9.4"  // Updated from 2.7.0
+    val coroutinesVersion = "1.10.2" // Updated from 1.7.3
 
     // --- MVVM and Room Dependencies ---
 
@@ -58,6 +59,12 @@ dependencies {
     // Lifecycle components (ViewModel and LiveData)
     implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:$lifecycleVersion")
     implementation("androidx.lifecycle:lifecycle-livedata-ktx:$lifecycleVersion")
+
+    // ** NEW: Compose LiveData Integration **
+    implementation("androidx.compose.runtime:runtime-livedata")
+
+    // ** NEW: Compose ViewModel Integration (The fix for your current error) **
+    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:$lifecycleVersion")
 
     // Coroutines
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutinesVersion")

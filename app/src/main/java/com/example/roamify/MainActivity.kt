@@ -6,18 +6,19 @@ import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-//import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-//import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.roamify.RoamifyApplication
 import com.example.roamify.tourbooking.data.Tour // <-- ADDED: Imports the Tour data class
 import com.example.roamify.tourbooking.ui.TourViewModelFactory
 import com.example.roamify.tourbooking.ui.admin.AdminViewModel // <-- CORRECTED PATH
 import com.example.roamify.tourbooking.ui.user.UserViewModel    // <-- CORRECTED PATH
 import com.example.roamify.ui.theme.RoamifyTheme // Assuming theme is also under tourbooking
+
 
 // Extension property to easily access the application instance
 val ComponentActivity.app: RoamifyApplication
