@@ -7,7 +7,6 @@ import androidx.lifecycle.asLiveData
 import androidx.lifecycle.viewModelScope
 import com.example.roamify.tourbooking.data.Tour
 import com.example.roamify.tourbooking.data.TourRepository
-import com.example.roamify.tourbooking.data.TourSoldOutException // Exception is in data package
 import kotlinx.coroutines.launch
 
 /**
@@ -48,6 +47,7 @@ class AdminViewModel(private val repository: TourRepository) : ViewModel() {
     fun updateTour(tour: Tour) {
         viewModelScope.launch {
             try {
+                // IMPORTANT: When updating, we use the tour object passed from the UI (which already has the updated fields)
                 repository.updateTour(tour)
                 _adminStatus.postValue("Tour '${tour.title}' updated.")
             } catch (e: Exception) {
