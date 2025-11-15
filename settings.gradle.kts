@@ -1,3 +1,5 @@
+// In settings.gradle.kts
+
 pluginManagement {
     repositories {
         google {
@@ -8,9 +10,17 @@ pluginManagement {
             }
         }
         mavenCentral()
-        gradlePluginPortal()
+        // --- THIS IS THE FIX ---
+        gradlePluginPortal {
+            content {
+                // Declare that the KSP plugin is found here
+                includeGroup("com.google.devtools.ksp")
+            }
+        }
     }
 }
+
+// ... rest of your file is likely correct
 dependencyResolutionManagement {
     repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
     repositories {
@@ -21,4 +31,3 @@ dependencyResolutionManagement {
 
 rootProject.name = "Roamify"
 include(":app")
- 

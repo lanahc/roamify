@@ -22,7 +22,7 @@ import com.example.roamify.ui.theme.RoamifyTheme // Assuming theme is also under
 
 // Extension property to easily access the application instance
 val ComponentActivity.app: RoamifyApplication
-    get() = application as RoamifyApplication
+    get() = (application as RoamifyApplication)
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
