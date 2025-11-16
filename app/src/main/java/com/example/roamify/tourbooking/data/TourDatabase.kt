@@ -4,32 +4,30 @@ import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
+import androidx.room.TypeConverters
 
-// Define all entities and database version
-// Tour and TourDao are now in this package, so no need for explicit imports of Tour and TourDao
-@Database(entities = [Tour::class], version = 1, exportSchema = false)
+// Add Booking::class and increase version number to 3
+@Database(entities = [Tour::class, User::class, Booking::class], version = 4, exportSchema = false)
 abstract class TourDatabase : RoomDatabase() {
 
-    // Expose the DAO
     abstract fun tourDao(): TourDao
+    abstract fun userDao(): UserDao
+    abstract fun bookingDao(): BookingDao // Add this abstract function
 
     companion object {
         @Volatile
         private var INSTANCE: TourDatabase? = null
 
         fun getDatabase(context: Context): TourDatabase {
-            // If the INSTANCE is not null, then return it,
-            // otherwise create a new database instance.
             return INSTANCE ?: synchronized(this) {
                 val instance = Room.databaseBuilder(
                     context.applicationContext,
                     TourDatabase::class.java,
                     "tour_database"
                 )
-                    .fallbackToDestructiveMigration()
+                    .fallbackToDestructiveMigration() // Easiest for development
                     .build()
                 INSTANCE = instance
-                // Return instance
                 instance
             }
         }

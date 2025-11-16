@@ -10,7 +10,7 @@ lifecycleRuntimeKtx = "2.6.4"
 activityCompose = "1.9.0"
 composeBom = "2024.06.00"
 kspVersion = "2.0.21-1.0.26"
-
+navVersion = "2.7.7"
 
 [libraries]
 # Your existing libraries...
@@ -28,6 +28,7 @@ androidx-material3 = { group = "androidx.compose.material3", name = "material3" 
 androidx-material-icons-extended = { group = "androidx.compose.material", name = "material-icons-extended" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 androidx-ui-test-junit4 = { group = "androidx.compose.ui", name = "ui-test-junit4", version.ref = "composeBom" }
+androidx-navigation-compose = { group = "androidx.navigation", name= "navigation-compose", version.ref = "navVersion" }
 
 
 [plugins]

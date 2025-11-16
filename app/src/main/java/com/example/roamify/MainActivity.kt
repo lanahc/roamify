@@ -30,6 +30,13 @@ import com.example.roamify.tourbooking.ui.admin.AdminScreen // <-- Import your A
 import com.example.roamify.tourbooking.ui.theme.ThemeManager
 import com.example.roamify.tourbooking.ui.user.UserScreen   // <-- Import your UserScreen
 import com.example.roamify.ui.theme.RoamifyTheme
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
+import androidx.compose.runtime.getValue
+
+import com.example.roamify.tourbooking.navigation.AppNavHost
+import com.example.roamify.ui.theme.RoamifyTheme
+
 
 // --- APPLICATION SETUP (Remains the same) ---
 
@@ -46,63 +53,21 @@ class MainActivity : ComponentActivity() {
         setContent {
             val isDark by ThemeManager.isDarkTheme
             RoamifyTheme (darkTheme = isDark) {
-                MainApp(factory)
+                // Surface provides a background color for the app, using the theme's color scheme.
+                Surface(
+                    modifier = Modifier.fillMaxSize(),
+                    color = MaterialTheme.colorScheme.background
+                ) {
+                    // The AppNavHost is now the single entry point for all of our app's UI.
+                    // It will handle showing the home, login, user, and admin screens.
+                    AppNavHost(factory = factory)
+                }
             }
         }
     }
 }
 
-// Enum for managing the current screen state
-enum class Screen {
-    USER, ADMIN
-}
 
-// --- MAIN APP COMPOSABLE (Handles Navigation) ---
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun MainApp(factory: TourViewModelFactory) {
-    // State to track which screen is currently visible
-    var currentScreen by remember { mutableStateOf(Screen.ADMIN) }
-
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("Roamify Tour Booking App") },
-                actions = {
-                    IconButton(onClick = { ThemeManager.toggleTheme() }) {
-                        Icon(
-                            Icons.Filled.Brightness4,
-                            contentDescription = "Toggle Theme"
-                        )
-                    }
-                    // Navigation buttons
-                    TextButton(onClick = { currentScreen = Screen.USER }) {
-                        Text("User View")
-                    }
-                    Spacer(modifier = Modifier.width(8.dp))
-                    TextButton(onClick = { currentScreen = Screen.ADMIN }) {
-                        Text("Admin View")
-                    }
-                }
-            )
-        }
-    ) { paddingValues ->
-                Column(
-                    modifier = Modifier
-                        .padding(paddingValues) // Use paddingValues from the Scaffold
-                        .fillMaxSize()
-                        .padding(horizontal = 16.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    // The "when" block now acts as a router, selecting which screen composable to display.
-                    when (currentScreen) {
-                        Screen.USER -> UserScreen(factory)
-                        Screen.ADMIN -> AdminScreen(factory)
-                    }
-                }
-            }
-        }
 
 
 

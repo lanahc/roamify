@@ -12,11 +12,11 @@ data class Tour(
     // Primary key for the database, auto-generated
     @PrimaryKey(autoGenerate = true)
     val tourId: Long = 0,
-    val title: String,
+    val name: String,
+    val location: String,
     val description: String,
     val price: Double,
     val maxCapacity: Int,
     val availableSlots: Int,
-    val imageUrl: String? = null,
-    val isFeatured: Boolean = false
+
 )

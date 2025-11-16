@@ -4,7 +4,8 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -13,37 +14,52 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.roamify.tourbooking.data.Tour
 import com.example.roamify.tourbooking.ui.TourViewModelFactory
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun UserScreen(factory: TourViewModelFactory) {
+fun UserScreen(
+    factory: TourViewModelFactory,
+    // This navigation action is provided from AppNavigation.kt
+    navigateToBookingForm: (tourId: Long) -> Unit
+) {
     val viewModel: UserViewModel = viewModel(factory = factory)
     val availableTours by viewModel.availableTours.observeAsState(initial = emptyList())
-    val bookingStatus by viewModel.bookingStatus.observeAsState()
 
-    // This outer Column now correctly manages the layout for scrolling.
-    Column(modifier = Modifier.fillMaxSize()) {
-        Spacer(modifier = Modifier.height(16.dp))
-        Text("Welcome, Traveler!", style = MaterialTheme.typography.headlineMedium)
-        Spacer(modifier = Modifier.height(8.dp))
+    // *** FIX 1: Observe the new navigation LiveData from the ViewModel ***
+    // When its value changes, we trigger the navigation and then reset it.
+    viewModel.navigateToBookingForm.observeAsState().value?.let { tourId ->
+        navigateToBookingForm(tourId)      // Execute the navigation
+        viewModel.onNavigationComplete() // Reset the event to prevent re-navigation
+    }
 
-        // Display Status Message
-        bookingStatus?.let { status ->
-            Text(
-                "Status: $status",
-                color = if (status.contains("successful")) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error,
-                modifier = Modifier.padding(bottom = 8.dp)
-            )
+    Scaffold(
+        topBar = {
+            TopAppBar(title = { Text("Welcome, Traveler!") })
         }
-
-        if (availableTours.isEmpty()) {
-            Text("No tours currently available for booking. Check back later!", style = MaterialTheme.typography.bodyLarge)
-        } else {
-            Text("Available Tours (${availableTours.size})", style = MaterialTheme.typography.titleMedium)
-            Spacer(modifier = Modifier.height(8.dp))
-
-            // The LazyColumn now uses weight(1f) to fill the remaining space and enable scrolling.
-            LazyColumn(modifier = Modifier.weight(1f)) {
-                items(availableTours, key = { it.tourId }) { tour ->
-                    TourCard(tour = tour, viewModel = viewModel)
+    ) { innerPadding ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding)
+                .padding(horizontal = 16.dp)
+        ) {
+            if (availableTours.isEmpty()) {
+                Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()) {
+                    Text("No tours currently available. Check back later!")
+                }
+            } else {
+                Text(
+                    "Available Tours (${availableTours.size})",
+                    style = MaterialTheme.typography.titleMedium,
+                    modifier = Modifier.padding(bottom = 8.dp)
+                )
+                LazyColumn(modifier = Modifier.fillMaxSize()) {
+                    items(availableTours, key = { it.tourId }) { tour ->
+                        // Pass the ViewModel function to the card
+                        TourCard(
+                            tour = tour,
+                            onBookClicked = { viewModel.onBookTourClicked(tour.tourId) }
+                        )
+                    }
                 }
             }
         }
@@ -51,56 +67,43 @@ fun UserScreen(factory: TourViewModelFactory) {
 }
 
 @Composable
-fun TourCard(tour: Tour, viewModel: UserViewModel) {
+fun TourCard(tour: Tour, onBookClicked: () -> Unit) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 8.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surfaceVariant
         )
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
-            // Title and Description
             Text(
-                tour.title,
+                tour.name,
                 style = MaterialTheme.typography.headlineSmall,
                 color = MaterialTheme.colorScheme.primary
             )
+            // Show the tour location
+            Text(tour.location, style = MaterialTheme.typography.titleSmall, modifier = Modifier.padding(top = 4.dp))
             Text(
-                tour.description.take(100) + if (tour.description.length > 100) "..." else "",
+                tour.description,
                 style = MaterialTheme.typography.bodyMedium,
-                modifier = Modifier.padding(top = 4.dp, bottom = 8.dp)
+                modifier = Modifier.padding(top = 8.dp, bottom = 16.dp)
             )
 
-            // Details and Booking Button
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Column {
-                    Text(
-                        "Price: \$${"%.2f".format(tour.price)}",
-                        style = MaterialTheme.typography.titleMedium
-                    )
-                    val slotsMessage = if (tour.availableSlots > 5) {
-                        "High Availability"
-                    } else if (tour.availableSlots > 0) {
-                        "Only ${tour.availableSlots} spots left!"
-                    } else {
-                        "Sold Out"
-                    }
-                    Text(
-                        slotsMessage,
-                        style = MaterialTheme.typography.labelMedium,
-                        color = if (tour.availableSlots <= 5 && tour.availableSlots > 0) MaterialTheme.colorScheme.error else LocalContentColor.current
-                    )
+                    Text("Price: \$${"%.2f".format(tour.price)}", style = MaterialTheme.typography.titleMedium)
+                    Text("Slots: ${tour.availableSlots}/${tour.maxCapacity}", style = MaterialTheme.typography.bodySmall)
                 }
 
+                // *** FIX 2: onClick now calls the passed-in lambda ***
                 Button(
-                    onClick = { viewModel.attemptBooking(tour.tourId) },
+                    onClick = onBookClicked,
                     enabled = tour.availableSlots > 0,
                     contentPadding = PaddingValues(horizontal = 24.dp, vertical = 12.dp)
                 ) {

@@ -4,34 +4,36 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.asLiveData
-import androidx.lifecycle.viewModelScope
 import com.example.roamify.tourbooking.data.Tour
 import com.example.roamify.tourbooking.data.TourRepository
-import com.example.roamify.tourbooking.data.TourSoldOutException // Exception is in data package
-import kotlinx.coroutines.launch
 
-class UserViewModel(private val repository: TourRepository) : ViewModel() {
+class UserViewModel(repository: TourRepository) : ViewModel() {
 
-    // Expose only available tours to the user UI
+    // --- Data Logic (This part is correct) ---
+    // This converts the 'availableTours' Flow from the repository into LiveData.
+    // The UI will observe this and automatically update whenever the database changes.
     val availableTours: LiveData<List<Tour>> = repository.availableTours.asLiveData()
 
-    private val _bookingStatus = MutableLiveData<String>()
-    val bookingStatus: LiveData<String> = _bookingStatus
+
+    // --- Navigation Logic (This part was missing) ---
+    // LiveData to hold the ID of the tour we want to navigate to.
+    // It's a "Single Live Event" - it should only be observed once.
+    private val _navigateToBookingForm = MutableLiveData<Long?>()
+    val navigateToBookingForm: LiveData<Long?> = _navigateToBookingForm
 
     /**
-     * Attempts to book one slot for the given tour ID.
+     * Called by the UI when the "Book Now" button is clicked.
+     * Sets the value of the navigation event LiveData.
      */
-    fun attemptBooking(tourId: Long) {
-        viewModelScope.launch {
-            try {
-                // The Repository handles the safety and logic of the transaction.
-                repository.bookTour(tourId)
-                _bookingStatus.postValue("Booking successful! Enjoy your trip.")
-            } catch (e: TourSoldOutException) {
-                _bookingStatus.postValue("Failed: This tour is now sold out.")
-            } catch (e: Exception) {
-                _bookingStatus.postValue("Booking failed due to an error.")
-            }
-        }
+    fun onBookTourClicked(tourId: Long) {
+        _navigateToBookingForm.value = tourId
+    }
+
+    /**
+     * Called by the UI after navigation has been performed.
+     * Resets the LiveData to null to prevent re-navigation on configuration change.
+     */
+    fun onNavigationComplete() {
+        _navigateToBookingForm.value = null
     }
 }

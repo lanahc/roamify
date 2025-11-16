@@ -1,26 +1,34 @@
 package com.example.roamify.tourbooking.data
 
-
+import androidx.compose.animation.core.copy
+import androidx.compose.foundation.text2.input.insert
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 
 /**
  * Custom exception used for clean error handling during booking.
- * PLACE THIS IN data/TourRepository.kt (or util/TourSoldOutException.kt if you prefer)
  */
 class TourSoldOutException : Exception("The selected tour has no more available slots.")
 
 /**
  * The Repository abstracts the data layer, providing a clean API to the ViewModels.
  * It handles logic, like the complex booking transaction, and manages thread safety.
+ *
+ * --- UPDATED ---
+ * It now manages Tour, User, and Booking data sources.
  */
-class TourRepository(private val tourDao: TourDao) {
+// MODIFICATION 1: Update the constructor to accept all three DAOs.
+class TourRepository(
+    private val tourDao: TourDao,
+    private val userDao: UserDao,
+    private val bookingDao: BookingDao // <-- ADDED
+) {
 
-    // Mutex for thread-safe access to booking logic, ensuring atomic updates
+    // Mutex for thread-safe access to booking logic, ensuring atomic updates.
     private val bookingMutex = Mutex()
 
-    // Expose data flows for real-time updates to ViewModels
+    // --- Tour-related data and functions ---
     val allTours: Flow<List<Tour>> = tourDao.getAllTours()
     val availableTours: Flow<List<Tour>> = tourDao.getAvailableTours()
 
@@ -36,28 +44,81 @@ class TourRepository(private val tourDao: TourDao) {
         tourDao.delete(tour)
     }
 
+    // MODIFICATION 2: ADD a function to get a single tour by ID.
     /**
-     * Handles the transactional logic for booking a tour:
-     * 1. Fetches the tour object.
-     * 2. Checks if slots are available.
-     * 3. Decrements available slots.
-     * 4. Updates the tour in the database.
-     * @throws TourSoldOutException if no slots are available.
+     * Retrieves a single tour from the database by its ID.
+     * This is crucial for the BookingViewModel to get tour details.
      */
-    suspend fun bookTour(tourId: Long) = bookingMutex.withLock {
-        val tour = tourDao.getTourById(tourId)
+    fun getTourById(tourId: Long): Flow<Tour?> {
+        return tourDao.getTourById(tourId)
+    }
 
-        if (tour == null) {
-            throw IllegalArgumentException("Tour not found with ID: $tourId")
-        }
+    /**
+     * Handles the transactional logic for creating a booking and updating tour slots.
+     * This is an atomic operation to prevent race conditions.
+     */
 
-        if (tour.availableSlots > 0) {
-            // Create a copy of the tour with one fewer available slot
-            val updatedTour = tour.copy(availableSlots = tour.availableSlots - 1)
+// ... inside TourRepository.kt ...
+
+    /**
+     * Handles the transactional logic for creating a booking and updating tour slots.
+     * This version is updated to match the project's specific Booking.kt structure.
+     */
+    suspend fun createBookingAndUpdateTour(
+        currentUserId: Int,
+        currentTourId: Long,
+        peopleCount: Int,
+        rentalCar: Boolean,
+        stayDays: Int,
+        date: String
+    ) = bookingMutex.withLock {
+        // Use a non-flow version for the transaction
+        val tour = tourDao.getTourByIdNonFlow(currentTourId)
+            ?: throw IllegalArgumentException("Tour not found with ID: $currentTourId")
+
+        if (tour.availableSlots >= peopleCount) {
+            // 1. Create and insert the new booking record using YOUR Booking class structure
+            val newBooking = Booking(
+                userId = currentUserId,
+                tourId = currentTourId,
+                numberOfPeople = peopleCount,
+                requiresCarRental = rentalCar,
+                stayDurationInDays = stayDays,
+                bookingDate = date
+                // The status will default to PENDING as defined in your Booking.kt
+            )
+            // Use the function name from your BookingDao: insertBooking
+            bookingDao.insertBooking(newBooking)
+
+            // 2. Update the tour with fewer available slots
+            val updatedTour = tour.copy(availableSlots = tour.availableSlots - peopleCount)
             tourDao.update(updatedTour)
         } else {
-            // Throw custom exception if sold out
+            // 3. Throw custom exception if not enough slots are available
             throw TourSoldOutException()
         }
+    }
+
+// ... rest of the repository ...
+
+
+    // --- User-related functions (Unchanged) ---
+
+    suspend fun insertUser(user: User) {
+        userDao.insert(user)
+    }
+
+    suspend fun loginUser(name: String, pass: String): User? {
+        return userDao.loginUser(name, pass)
+    }
+
+
+    // --- MODIFICATION 3: ADD Booking-related functions ---
+
+    /**
+     * Retrieves all bookings made by a specific user.
+     */
+    fun getBookingsForUser(userId: Int): Flow<List<Booking>> {
+        return bookingDao.getBookingsByUserId(userId)
     }
 }

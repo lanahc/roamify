@@ -22,19 +22,22 @@ class AdminViewModel(private val repository: TourRepository) : ViewModel() {
 
     /**
      * Adds a new tour to the database.
+     * -- FIXED -- Simplified the function to remove confusing 'capacity' parameter.
      */
-    fun addNewTour(title: String, description: String, capacity: Int, price: Double) {
+    fun addNewTour(name: String, description: String, location: String, price: Double, maxCapacity: Int) {
         viewModelScope.launch {
             try {
+                // The tour's capacity is set, and available slots start at the maximum.
                 val newTour = Tour(
-                    title = title,
+                    name = name,
                     description = description,
-                    maxCapacity = capacity,
-                    availableSlots = capacity, // Start with all slots available
-                    price = price
+                    location = location,
+                    price = price,
+                    maxCapacity = maxCapacity,      // Correctly use the maxCapacity parameter
+                    availableSlots = maxCapacity  // Available slots should equal max capacity at creation
                 )
                 repository.insertTour(newTour)
-                _adminStatus.postValue("Tour '$title' successfully added!")
+                _adminStatus.postValue("Tour '$name' successfully added!")
             } catch (e: Exception) {
                 _adminStatus.postValue("Failed to add tour: ${e.message}")
             }
@@ -47,9 +50,9 @@ class AdminViewModel(private val repository: TourRepository) : ViewModel() {
     fun updateTour(tour: Tour) {
         viewModelScope.launch {
             try {
-                // IMPORTANT: When updating, we use the tour object passed from the UI (which already has the updated fields)
+                // IMPORTANT: When updating, we use the tour object passed from the UI
                 repository.updateTour(tour)
-                _adminStatus.postValue("Tour '${tour.title}' updated.")
+                _adminStatus.postValue("Tour '${tour.name}' updated.")
             } catch (e: Exception) {
                 _adminStatus.postValue("Failed to update tour: ${e.message}")
             }
@@ -63,7 +66,7 @@ class AdminViewModel(private val repository: TourRepository) : ViewModel() {
         viewModelScope.launch {
             try {
                 repository.deleteTour(tour)
-                _adminStatus.postValue("Tour '${tour.title}' deleted.")
+                _adminStatus.postValue("Tour '${tour.name}' deleted.")
             } catch (e: Exception) {
                 _adminStatus.postValue("Failed to delete tour: ${e.message}")
             }

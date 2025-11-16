@@ -74,6 +74,12 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
 
+    //navigation
+    implementation(libs.androidx.navigation.compose)
+
+// live data
+    implementation("androidx.compose.runtime:runtime-livedata")
+
     // --- Existing Dependencies (Using Version Catalog) ---
 
     implementation(libs.androidx.core.ktx)

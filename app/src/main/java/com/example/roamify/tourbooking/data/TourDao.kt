@@ -1,23 +1,16 @@
 package com.example.roamify.tourbooking.data
 
-// data/TourDao.kt
-import androidx.room.*
+import androidx.room.Dao
+import androidx.room.Delete
+import androidx.room.Insert
+import androidx.room.OnConflictStrategy
+import androidx.room.Query
+import androidx.room.Update
 import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface TourDao {
-    // Admin: Get all tours for management
-    @Query("SELECT * FROM tours WHERE tourId = :id")
-    suspend fun getTourById(id: Long): Tour?
-    @Query("SELECT * FROM tours ORDER BY title ASC")
-    fun getAllTours(): Flow<List<Tour>>
-
-    // User: Get available tours (simple example)
-    @Query("SELECT * FROM tours WHERE availableSlots > 0 ORDER BY price ASC")
-    fun getAvailableTours(): Flow<List<Tour>>
-
-    // Admin/User: CRUD Operations
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insert(tour: Tour)
 
     @Update
@@ -25,4 +18,19 @@ interface TourDao {
 
     @Delete
     suspend fun delete(tour: Tour)
+
+    @Query("SELECT * from tours ORDER BY name ASC")
+    fun getAllTours(): Flow<List<Tour>>
+
+    // Get tours that have at least one slot available
+    @Query("SELECT * from tours WHERE availableSlots > 0 ORDER BY name ASC")
+    fun getAvailableTours(): Flow<List<Tour>>
+
+    // Get a specific tour by its ID
+    @Query("SELECT * from tours WHERE tourId = :tourId")
+    fun getTourById(tourId: Long): Flow<Tour?> // Changed to Long
+
+    @Query("SELECT * FROM tours WHERE tourId = :tourId")
+    suspend fun getTourByIdNonFlow(tourId: Long): Tour?
+
 }

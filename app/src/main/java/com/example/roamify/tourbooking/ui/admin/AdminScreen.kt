@@ -22,7 +22,7 @@ import com.example.roamify.tourbooking.ui.TourViewModelFactory
 import kotlin.math.min // Needed for minOf if not available by default
 
 // Define a null Tour object to represent the 'Add' state
-private val DEFAULT_TOUR = Tour(tourId = 0, title = "", description = "", price = 0.0, maxCapacity = 0, availableSlots = 0)
+private val DEFAULT_TOUR = Tour(tourId = 0, name = "", location = "", description = "", price = 0.0, maxCapacity = 0, availableSlots = 0)
 
 // --- ADMIN DASHBOARD ---
 
@@ -104,15 +104,18 @@ fun AddEditTourForm(
     val isEditMode = initialTour.tourId != 0L
     val submitButtonText = if (isEditMode) "Update Tour" else "Add Tour"
 
-    var title by remember(initialTour.tourId) { mutableStateOf(initialTour.title) }
+    // --- State for each text field ---
+    var title by remember(initialTour.tourId) { mutableStateOf(initialTour.name) }
     var description by remember(initialTour.tourId) { mutableStateOf(initialTour.description) }
+    // FIX 1: Add state for the location field
+    var location by remember(initialTour.tourId) { mutableStateOf(initialTour.location) }
     var priceInput by remember(initialTour.tourId) { mutableStateOf(if (isEditMode) "%.2f".format(initialTour.price) else "") }
     var capacityInput by remember(initialTour.tourId) { mutableStateOf(if (isEditMode) initialTour.maxCapacity.toString() else "") }
 
-    val isFormValid = title.isNotBlank() && description.isNotBlank() && priceInput.toDoubleOrNull() != null && capacityInput.toIntOrNull() != null
+    // Form validation now includes the location field
+    val isFormValid = title.isNotBlank() && description.isNotBlank() && location.isNotBlank() && priceInput.toDoubleOrNull() != null && capacityInput.toIntOrNull() != null
 
-    // Removed fillMaxWidth() from Column to respect the screen padding set in MainActivity
-    Column(modifier = Modifier.padding(horizontal = 16.dp).fillMaxWidth().padding(bottom = 8.dp)) { // Corrected padding
+    Column(modifier = Modifier.padding(horizontal = 16.dp).fillMaxWidth().padding(bottom = 8.dp)) {
         Text(if (isEditMode) "Edit Tour (ID: ${initialTour.tourId})" else "Create New Tour", style = MaterialTheme.typography.titleLarge)
         if (isEditMode) {
             TextButton(onClick = onSubmissionSuccess) {
@@ -125,6 +128,13 @@ fun AddEditTourForm(
             value = title,
             onValueChange = { title = it },
             label = { Text("Title") },
+            modifier = Modifier.fillMaxWidth()
+        )
+        // FIX 2: Add the missing location text field
+        OutlinedTextField(
+            value = location,
+            onValueChange = { location = it },
+            label = { Text("Location") },
             modifier = Modifier.fillMaxWidth()
         )
         OutlinedTextField(
@@ -160,16 +170,26 @@ fun AddEditTourForm(
 
                 if (isEditMode) {
                     val updatedTour = initialTour.copy(
-                        title = title,
+                        name = title,
                         description = description,
+                        location = location, // Also update location on edit
                         price = price,
                         maxCapacity = capacity,
+                        // Logic to prevent available slots from exceeding new capacity
                         availableSlots = minOf(capacity, initialTour.availableSlots)
                     )
                     viewModel.updateTour(updatedTour)
                 } else {
-                    viewModel.addNewTour(title, description, capacity, price)
+                    // FIX 3: Update the function call to match the new signature
+                    viewModel.addNewTour(
+                        name = title,
+                        description = description,
+                        location = location, // Pass the new location state
+                        price = price,
+                        maxCapacity = capacity
+                    )
                 }
+                // Reset form fields after submission
                 onSubmissionSuccess()
             },
             enabled = isFormValid,
@@ -179,6 +199,8 @@ fun AddEditTourForm(
         }
     }
 }
+
+
 
 @Composable
 fun TourManagementList(tours: List<Tour>, viewModel: AdminViewModel, onEditClicked: (Tour) -> Unit) {
@@ -207,7 +229,7 @@ fun TourManagementList(tours: List<Tour>, viewModel: AdminViewModel, onEditClick
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Column(modifier = Modifier.weight(1f)) {
-                        Text(tour.title, style = MaterialTheme.typography.titleMedium)
+                        Text(tour.name, style = MaterialTheme.typography.titleMedium)
                         Text(
                             "Slots: ${tour.availableSlots}/${tour.maxCapacity} | Price: \$${"%.2f".format(tour.price)}",
                             style = MaterialTheme.typography.bodySmall
