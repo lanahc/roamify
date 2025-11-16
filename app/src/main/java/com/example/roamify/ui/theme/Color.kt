@@ -9,3 +9,10 @@ val Pink80 = Color(0xFFEFB8C8)
 val Purple40 = Color(0xFF6650a4)
 val PurpleGrey40 = Color(0xFF625b71)
 val Pink40 = Color(0xFF7D5260)
+
+val RoamifyTeal = Color(0xFF00897B)       // A deep teal for primary elements
+val RoamifyTealLight = Color(0xFF4DB6AC)    // A lighter teal for dark theme primary
+val RoamifyAccentOrange = Color(0xFFFF7043) // An orange for secondary/accent elements
+val RoamifyAccentOrangeDark = Color(0xFFF4511E)
+val RoamifyBackgroundDark = Color(0xFF121212) // Standard dark background
+val RoamifySurfaceDark = Color(0xFF1E1E1E)   // For cards and surfaces in dark mode
