@@ -32,6 +32,8 @@ class TourRepository(
     val allTours: Flow<List<Tour>> = tourDao.getAllTours()
     val availableTours: Flow<List<Tour>> = tourDao.getAvailableTours()
 
+    val allBookings: Flow<List<Booking>> = bookingDao.getAllBookings()
+
     suspend fun insertTour(tour: Tour) {
         tourDao.insert(tour)
     }
@@ -42,6 +44,9 @@ class TourRepository(
 
     suspend fun deleteTour(tour: Tour) {
         tourDao.delete(tour)
+    }
+    suspend fun updateBooking(booking: Booking) {
+        bookingDao.updateBooking(booking)
     }
 
     // MODIFICATION 2: ADD a function to get a single tour by ID.

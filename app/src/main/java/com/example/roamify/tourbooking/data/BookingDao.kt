@@ -18,10 +18,11 @@ interface BookingDao {
     // Gets all bookings for the admin view
     @Query("SELECT * FROM bookings ORDER BY bookingId DESC")
     fun getAllBookings(): Flow<List<Booking>>
-
     // Gets a specific booking by its ID
     @Query("SELECT * FROM bookings WHERE bookingId = :bookingId")
     suspend fun getBookingById(bookingId: Long): Booking?
+
     @Query("SELECT * FROM bookings WHERE userId = :userId ORDER BY bookingId DESC")
     fun getBookingsByUserId(userId: Int): Flow<List<Booking>>
+
 }

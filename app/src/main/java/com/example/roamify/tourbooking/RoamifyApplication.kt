@@ -13,5 +13,5 @@ class RoamifyApplication : Application() {
     private val repository by lazy { TourRepository(database.tourDao(), database.userDao(), database.bookingDao()) }
 
     // ViewModelFactory now uses the correctly initialized repository
-    val viewModelFactory by lazy { TourViewModelFactory(repository) }
+    val viewModelFactory by lazy { TourViewModelFactory(this) }
 }
